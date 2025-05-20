@@ -119,20 +119,21 @@ erDiagram
     }
 
     ParkingSlot {
-        id         String  
-  slotNumber      String       
-  type            SlotType     
-  size            SlotSize    
-  vehicleType     VehicleType? 
-  parkingName     String?      
-  availableSpaces Int          
-  chargePerHour   Float       
-  location        String?
-  isAvailable     Boolean      
-  createdAt       DateTime     
-  updatedAt       DateTime     
-  bookings        Booking[]
+        string id PK
+        string slotNumber
+        string type
+        string size
+        string vehicleType
+        string parkingName
+        int availableSpaces
+        float chargePerHour
+        string location
+        boolean isAvailable
+        datetime createdAt
+        datetime updatedAt
+        string bookings
     }
+
 
     Booking {
         string id PK
