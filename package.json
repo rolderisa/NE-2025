@@ -1,0 +1,32 @@
+{
+  "name": "parking-management-system",
+  "version": "1.0.0",
+  "description": "Full-stack Parking Management System",
+  "main": "index.js",
+  "scripts": {
+    "install:all": "concurrently \"npm run install:backend\" \"npm run install:frontend\"",
+    "install:backend": "cd backend && npm install",
+    "install:frontend": "cd frontend && npm install",
+    "dev": "concurrently \"npm run dev:backend\" \"npm run dev:frontend\"",
+    "dev:backend": "cd backend && npm run dev",
+    "dev:frontend": "cd frontend && npm run dev",
+    "build": "concurrently \"npm run build:backend\" \"npm run build:frontend\"",
+    "build:backend": "cd backend && npm run build",
+    "build:frontend": "cd frontend && npm run build",
+    "start": "cd backend && npm run start"
+  },
+  "keywords": [
+    "parking",
+    "management",
+    "system",
+    "prisma",
+    "react",
+    "node",
+    "postgresql"
+  ],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "concurrently": "^8.2.2"
+  }
+}

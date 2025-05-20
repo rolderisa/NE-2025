@@ -1,0 +1,209 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ========== ENUMS ==========
+
+enum Role {
+  USER
+  ADMIN
+}
+
+enum BookingStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  CANCELLED
+  COMPLETED
+  EXPIRED
+}
+
+enum PaymentStatus {
+  PENDING
+  PAID
+  FAILED
+  REFUNDED
+}
+
+enum SlotType {
+  VIP
+  REGULAR 
+}
+
+enum PlanType {
+  FREE
+  MONTHLY
+  YEARLY
+}
+
+enum VehicleType {
+  CAR
+  BIKE
+  MOTORCYCLE
+  TRUCK
+}
+
+enum VehicleSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum SlotSize {
+  SMALL
+  MEDIUM
+  LARGE
+}
+
+enum VerificationStatus {
+  UNVERIFIED
+  VERIFIED
+}
+
+enum PasswordResetStatus {
+  IDLE
+  REQUESTED
+  COMPLETED
+}
+
+// ========== MODELS ==========
+
+model User {
+  id                    String               @id @default(uuid())
+  email                 String               @unique
+  password              String
+  name                  String
+  role                  Role                 @default(USER)
+  createdAt             DateTime             @default(now())
+  updatedAt             DateTime             @updatedAt
+  plateNumber           String?
+  verificationStatus    VerificationStatus   @default(UNVERIFIED) @map("verification_status")
+  verificationCode      String?              @map("verification_code")
+  verificationExpires   DateTime?            @map("verification_expires")
+  passwordResetStatus   PasswordResetStatus  @default(IDLE) @map("password_reset_status")
+  passwordResetCode     String?              @map("password_reset_code")
+  passwordResetExpires  DateTime?            @map("password_reset_expires")
+  bookings              Booking[]
+  payments              Payment[]
+  vehicles              Vehicle[]
+  logs                  Log[]
+  vehicleEntries        VehicleEntry[]
+}
+
+model Vehicle {
+  id          String        @id @default(uuid())
+  plateNumber String        @unique
+  type        VehicleType
+  size        VehicleSize
+  attributes  Json?
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+  userId      String
+  user        User          @relation(fields: [userId], references: [id])
+  bookings    Booking[]
+  vehicleEntries VehicleEntry[]
+  @@index([userId])
+  @@index([plateNumber])
+}
+
+model ParkingSlot {
+  id              String       @id @default(uuid())
+  slotNumber      String       @unique
+  type            SlotType     @default(REGULAR)
+  size            SlotSize     @default(MEDIUM)
+  vehicleType     VehicleType? @default(CAR)
+  parkingName     String?      @map("parking_name")
+  availableSpaces Int          @default(1) @map("available_spaces")
+  chargePerHour   Float        @default(2000.0) @map("charge_per_hour")
+  location        String?
+  isAvailable     Boolean      @default(true)
+  createdAt       DateTime     @default(now())
+  updatedAt       DateTime     @updatedAt
+  bookings        Booking[]
+}
+
+model Booking {
+  id           String        @id @default(uuid())
+  startTime    DateTime
+  endTime      DateTime
+  status       BookingStatus @default(PENDING)
+  isPaid       Boolean       @default(false)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  expiresAt    DateTime?
+  vehicleId    String
+  vehicle      Vehicle       @relation(fields: [vehicleId], references: [id])
+  userId       String
+  user         User          @relation(fields: [userId], references: [id])
+  slotId       String
+  parkingSlot  ParkingSlot   @relation(fields: [slotId], references: [id])
+  payment      Payment?
+  @@index([userId])
+  @@index([slotId])
+  @@index([vehicleId])
+  @@index([status])
+}
+
+model PaymentPlan {
+  id          String     @id @default(uuid())
+  name        String
+  type        PlanType
+  price       Float
+  duration    Int
+  description String?
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+  payments    Payment[]
+}
+
+model Payment {
+  id            String        @id @default(uuid())
+  amount        Float
+  status        PaymentStatus @default(PENDING)
+  transactionId String?
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  bookingId     String        @unique
+  booking       Booking       @relation(fields: [bookingId], references: [id])
+  planId        String
+  plan          PaymentPlan   @relation(fields: [planId], references: [id])
+  @@index([userId])
+  @@index([status])
+}
+
+model VehicleEntry {
+  id            String    @id @default(uuid())
+  plateNumber   String
+  parkingCode   String    @unique
+  entryDateTime DateTime  @default(now())
+  exitDateTime  DateTime?
+  chargedAmount Float     @default(0.0)
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  vehicleId     String
+  vehicle       Vehicle   @relation(fields: [vehicleId], references: [id])
+  userId        String
+  user          User      @relation(fields: [userId], references: [id])
+  @@index([vehicleId])
+  @@index([userId])
+  @@index([parkingCode])
+}
+
+model Log {
+  id        String   @id @default(uuid())
+  action    String
+  details   Json?
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  @@index([userId])
+  @@index([action])
+  @@index([createdAt])
+}
