@@ -119,7 +119,7 @@ erDiagram
     }
 
     ParkingSlot {
-  id              String      
+        id         String  
   slotNumber      String       
   type            SlotType     
   size            SlotSize    
